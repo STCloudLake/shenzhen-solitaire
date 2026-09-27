@@ -3,6 +3,9 @@
 复刻 **SHENZHEN I/O**（Zachtronics）里那个藏在游戏里的麻将牌接龙小游戏 —— 官方名字叫
 **Shenzhen Solitaire**。规则、牌面、配色、牌桌布局都按原版还原。
 
+> ### ▶ [**点这里在线试玩**](https://stcloudlake.github.io/shenzhen-solitaire/)
+> GitHub Pages 托管，打开就能玩，不用下载任何东西。
+
 ![游戏画面](docs/preview.png)
 
 ## 怎么玩

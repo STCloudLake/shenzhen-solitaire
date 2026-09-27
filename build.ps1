@@ -33,6 +33,13 @@ $musicJs = 'window.SZ_MUSIC = ' + (@{ tracks = $tracks; base = $musicBase } | Co
 $html = $shell.Replace('/*__CSS__*/', $css).Replace('/*__JS__*/', $js).Replace('/*__MUSIC__*/', $musicJs)
 Set-Content -Path $out -Value $html -Encoding UTF8 -NoNewline
 
+# GitHub Pages 在线试玩入口：让 docs/index.html 始终与网页版一致
+$docs = Join-Path $root 'docs'
+if (Test-Path $docs) {
+  Set-Content -Path (Join-Path $docs 'index.html') -Value $html -Encoding UTF8 -NoNewline
+  New-Item -ItemType File -Force -Path (Join-Path $docs '.nojekyll') | Out-Null
+}
+
 $kb = [math]::Round((Get-Item $out).Length / 1KB, 1)
 Write-Host "built: $out  ($kb KB)"
 Write-Host ("music: {0} 首曲目{1}" -f $tracks.Count, $(if ($musicBase) { " · 备用路径 $musicBase" } else { " · 未找到 music/ 目录" }))
