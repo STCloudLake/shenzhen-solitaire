@@ -1,0 +1,9 @@
+{
+  "name": "shenzhen-solitaire",
+  "productName": "SHENZHEN SOLITAIRE",
+  "version": "1.0.0",
+  "description": "SHENZHEN SOLITAIRE - SHENZHEN I/O 中的麻将牌接龙复刻",
+  "main": "main.js",
+  "private": true,
+  "author": "recreation"
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SHENZHEN SOLITAIRE · 麻将接龙</title>
+<meta name="description" content="复刻 SHENZHEN I/O 中的麻将牌接龙小游戏（Shenzhen Solitaire）">
+<style>
+/*__CSS__*/
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="frame">
+    <div id="titlebar">
+      <span class="brand">SHENZHEN <b>I/O</b> · SOLITAIRE</span>
+      <span class="sub">麻将接龙</span>
+      <span class="grow"></span>
+      <button class="toggle" id="tg-auto" title="与原版一致：能安全上基位的牌自动飞上去"><span class="led"></span>AUTO-MOVE</button>
+      <button class="toggle" id="tg-solvable" title="发牌时用求解器挑选可解的牌局"><span class="led"></span>SOLVABLE</button>
+      <button class="toggle" id="tg-sound" title="音效开关"><span class="led"></span>SOUND</button>
+    </div>
+
+    <div id="board">
+      <div id="ghost"></div>
+      <div id="hintline"></div>
+      <div id="winbanner">
+        <div class="wb">
+          <div class="big">YOU WIN</div>
+          <div class="cn">27 张数字牌全部归位，三组龙牌已收进空格</div>
+          <div class="meta">SEED —</div>
+          <div class="row">
+            <button class="btn" id="win-new">NEW GAME</button>
+            <button class="btn" id="win-close">CLOSE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="deck">
+      <span class="deck-tag">♫ MUSIC</span>
+      <button class="tbtn" id="mus-prev" title="上一首">⏮</button>
+      <button class="tbtn play" id="mus-play" title="播放 / 暂停">▶</button>
+      <button class="tbtn" id="mus-next" title="下一首">⏭</button>
+      <div class="deck-screen" title="点击进度条可以快进">
+        <div class="deck-title" id="mus-title">—</div>
+        <div class="deck-progress"><span id="mus-bar"></span></div>
+      </div>
+      <span class="deck-time" id="mus-time">0:00 / 0:00</span>
+      <select class="deck-select" id="mus-mode" title="播放范围">
+        <option value="solo">本局曲目</option>
+        <option value="all">全部顺序</option>
+        <option value="shuffle">全部随机</option>
+      </select>
+      <input class="deck-vol" id="mus-vol" type="range" min="0" max="100" value="50" title="音量">
+      <button class="tbtn wide" id="mus-pick" title="从任意文件夹挑选音乐文件">选择音乐…</button>
+    </div>
+
+    <div id="chrome">
+      <div class="stat"><span>WIN COUNT</span><span class="val" id="stat-wins">0</span></div>
+      <div class="stat"><span>SEED</span><span class="val" id="stat-seed">0</span></div>
+      <span class="grow"></span>
+      <button class="btn" id="btn-undo">UNDO</button>
+      <button class="btn" id="btn-restart">RESTART</button>
+      <button class="btn" id="btn-rules">INSTRUCTIONS</button>
+      <button class="btn" id="btn-new">NEW GAME</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="panel">
+    <h2>INSTRUCTIONS · 玩法说明</h2>
+    <div class="body">
+      <h3>目标</h3>
+      <ul>
+        <li>把 27 张数字牌（<span class="cardin">筒</span>／<span class="cardin g">索</span>／<span class="cardin b">萬</span> 三色各 1–9）按花色、从小到大送进右上角的三个基位。</li>
+        <li>把花牌 <span class="cardin">❀</span> 送进花位（它一旦露出会自动飞过去）。</li>
+        <li>把三组龙牌（<span class="cardin">中</span>／<span class="cardin g">發</span>／<span class="cardin b">白</span> 各 4 张）合并进左上角的三个空格。</li>
+      </ul>
+
+      <h3>牌桌</h3>
+      <ul>
+        <li>40 张牌全部明牌发在下方 8 列，每列 5 张；桌面上的牌可以互相叠放。</li>
+        <li>左上角 3 个空格（虚线框）可以临时放任意单张牌。</li>
+        <li>右上角是花位与 3 个基位。</li>
+      </ul>
+
+      <h3>移动规则</h3>
+      <ul>
+        <li>数字牌只能叠在「点数大 1 且花色不同」的牌上（例如 <span class="cardin">7筒</span> 上可以放 <span class="cardin g">6索</span> 或 <span class="cardin b">6萬</span>）。</li>
+        <li>空列可以放任意一张牌，也可以放一整叠。</li>
+        <li>只有当一叠牌自上而下「点数依次减 1、花色交替」时，才能整叠拿起；单张顶牌随时可以拿起。</li>
+        <li>数字牌可以被手动送上基位，条件是同花色前一等级已经就位；上去了就不能再拿回来。</li>
+      </ul>
+
+      <h3>龙牌</h3>
+      <ul>
+        <li>龙牌不能叠在任何牌上，也不能被别的牌叠；它只能放到空列或左上角的空格里。</li>
+        <li>当某一色 4 张龙牌全部露出（都在列顶或空格里），并且有一个空格是空的（或已经放着同色龙牌）时，中间的黄铜按钮会亮起。</li>
+        <li>按下按钮，4 张龙牌会一起收进那个空格并锁死该格，此后这个格子不能再放别的牌。</li>
+      </ul>
+
+      <h3>自动上牌（与原版一致）</h3>
+      <ul>
+        <li><b>1</b> 只要露出就会自动飞上基位。</li>
+        <li>点数更高的牌，只有当三个花色都已经上到「前一等级」时才会自动飞上去（例如 5 只有在三张 4 都就位后才自动上去）。这样保证自动上牌不会把局面走死。</li>
+        <li>不满足安全条件但确实能上的牌，可以自己拖上去（属于进阶操作）。</li>
+      </ul>
+
+      <h3>操作</h3>
+      <ul>
+        <li><b>拖拽</b>：按住牌拖到目标位置松开。</li>
+        <li><b>点选</b>：点一下牌选中（会高亮所有可落点），再点目标位置落牌；点空白处取消。</li>
+        <li><b>双击</b>：把手动可以上基位的牌直接送上基位。</li>
+        <li>整叠搬运时，先点选／拖拽这叠牌最下面那一张。</li>
+      </ul>
+
+      <h3>快捷键</h3>
+      <ul>
+        <li><kbd>U</kbd> / <kbd>Ctrl+Z</kbd> 撤销　<kbd>R</kbd> 重开本局　<kbd>N</kbd> 新游戏</li>
+        <li><kbd>A</kbd> 自动上牌开关　<kbd>M</kbd> 静音　<kbd>I</kbd> 本说明　<kbd>Esc</kbd> 取消选中</li>
+      </ul>
+
+      <h3>音乐</h3>
+      <ul>
+        <li>牌桌下方的音乐台会直接播放本机 SHENZHEN I/O 的原声（放在本文件旁边的 <code>music/</code> 文件夹里），
+          默认循环这首小游戏自己的曲子 <b>Solitaire</b>。</li>
+        <li>播放范围可以切成「本局曲目」「全部顺序」「全部随机」；<b>⏮ ▶ ⏭</b> 控制播放，
+          点进度框可以快进，右边的滑块调音量。开关状态和音量会被记住。</li>
+        <li>浏览器规定必须先有一次点击才允许出声：打开页面后点一下画面就会开始播放。</li>
+        <li>如果音乐台显示「未找到音乐文件」，点右边的 <b>选择音乐…</b>，
+          选中 <code>…\steamapps\common\SHENZHEN IO\Content\music</code> 即可（也可以放任意自己喜欢的音乐）。</li>
+        <li>原声版权属于 Zachtronics，仅供本机游玩，请不要连游戏文件一起分发。</li>
+      </ul>
+
+      <h3>关于这个复刻</h3>
+      <ul>
+        <li>规则完全按照 Zachtronics 原作 SHENZHEN I/O 中的 Solitaire 小游戏实现：40 张牌（3 花色 × 1–9 共 27 张、中／發／白龙各 4 张、花牌 1 张）、8 列 × 5 张、3 个空格、3 个基位。</li>
+        <li>随机发牌时约四分之三的牌局可解（与原作一致）。标题栏的 <b>SOLVABLE</b> 开关会先跑一遍求解器，尽量发一副保证可解的牌；关掉就是纯随机。</li>
+        <li>SEED 可以点击复制带种子的链接，同一种子发到的牌局完全相同。</li>
+      </ul>
+    </div>
+    <div class="foot"><button class="btn" id="rules-close">CLOSE</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/*__MUSIC__*/
+</script>
+<script>
+/*__JS__*/
+</script>
+</body>
+</html>
