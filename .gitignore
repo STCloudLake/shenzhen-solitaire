@@ -33,3 +33,6 @@ node_modules/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# 本地排障用（网络受限时走 API 推送）
+tools/push-via-api.ps1
