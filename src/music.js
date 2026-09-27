@@ -26,7 +26,10 @@
   var usingFallback = false;// 相对路径失败后是否改用绝对路径
   var failedNames = {};     // 加载失败的曲目，避免死循环重试
   var lastError = '';
+  var hint = false;         // true 表示只是「没找到音乐」的提示，不是错误
   var ready = false;
+  // 在线试玩（http/https）时没有本地文件，不必去试构建时记录的绝对路径
+  var isRemote = (typeof location !== 'undefined') && /^https?:$/.test(location.protocol);
 
   function prefs(read) {
     try {
@@ -135,12 +138,13 @@
     if (!els.title) return;
     var name = list[index];
     var title;
-    if (!tracks().length) title = '未找到音乐文件（把 music/ 放在本文件旁边，或点右侧「选择音乐」）';
-    else if (lastError) title = lastError;
+    if (!tracks().length) { title = '未找到音乐文件（把 music/ 放在本文件旁边，或点右侧「选择音乐」）'; hint = true; }
+    else if (lastError) title = hint ? (lastError + ' · 点右侧「选择音乐…」可以自己挑') : lastError;
     else if (!name) title = '—';
     else title = pretty(name) + (list.length > 1 ? '  (' + (index + 1) + '/' + list.length + ')' : '');
     els.title.textContent = title;
-    els.title.classList.toggle('warn', !!lastError || !tracks().length);
+    els.title.classList.toggle('warn', !!lastError && !hint);
+    els.title.classList.toggle('hint', hint);
 
     els.play.textContent = playing ? '❚❚' : '▶';
     els.play.title = playing ? '暂停' : '播放';
@@ -158,17 +162,25 @@
     var name = list[index];
     if (!name) return;
     // 相对路径读不到（比如单文件被挪到别处）时，尝试构建时记录的绝对路径
-    if (!picked && !usingFallback && META && META.base) {
+    if (!picked && !usingFallback && !isRemote && META && META.base) {
       usingFallback = true;
       lastError = '';
       load(playing || wantPlay);
       return;
     }
     failedNames[name] = true;
+    hint = false;
     lastError = '「' + pretty(name) + '」无法加载';
     var left = list.filter(function (n) { return !failedNames[n]; });
     if (left.length && list.length > 1) { next(true); return; }
+    // 全部失败：多半就是这一份没带音频文件
     playing = false;
+    if (picked) {
+      lastError = '这些音频文件无法播放';
+    } else {
+      lastError = '这里没有音乐文件';
+      hint = true;
+    }
     render();
   }
 

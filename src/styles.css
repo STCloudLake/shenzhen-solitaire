@@ -370,6 +370,7 @@ body{
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .deck-title.warn{color:#e0a35c}
+.deck-title.hint{color:#93a6b1}
 .deck-progress{
   position:absolute;left:0;right:0;bottom:0;height:3px;
   background:rgba(255,255,255,.07);
